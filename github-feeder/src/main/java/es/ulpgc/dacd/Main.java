@@ -1,17 +1,28 @@
 package es.ulpgc.dacd;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import es.ulpgc.dacd.control.Controller;
+import es.ulpgc.dacd.control.GitHubClient;
+import es.ulpgc.dacd.persistence.SqliteDatabaseManager;
+
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+        System.out.println("Iniciando Techno-Radar (Módulo GitHub)...");
+        SqliteDatabaseManager store = new SqliteDatabaseManager("github_trends.db");
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+        GitHubClient feeder = new GitHubClient();
+        Controller controller = new Controller(feeder, store);
+
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("Descargando datos de GitHub y guardando en SQLite...");
+                controller.execute();
+                System.out.println("Actualización completada con éxito.");
+            }
+        }, 0, 3600000);
     }
 }
