@@ -3,7 +3,7 @@ package es.ulpgc.dacd.persistence;
 import es.ulpgc.dacd.model.StackExchangeTrend;
 import java.sql.*;
 
-public class SqliteDatabaseManager {
+public class SqliteDatabaseManager implements StackExchangeStore {
     private final String url;
 
     public SqliteDatabaseManager(String dbPath) {
@@ -19,6 +19,7 @@ public class SqliteDatabaseManager {
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
+    @Override
     public void save(StackExchangeTrend trend) {
         String sql = "INSERT INTO stackexchange_trends(name, count, captured_at) VALUES(?,?,?)";
         try (Connection conn = DriverManager.getConnection(url);
