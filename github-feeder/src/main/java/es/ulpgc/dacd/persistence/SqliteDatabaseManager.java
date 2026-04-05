@@ -3,7 +3,7 @@ package es.ulpgc.dacd.persistence;
 import es.ulpgc.dacd.model.GitHubTrend;
 import java.sql.*;
 
-public class SqliteDatabaseManager {
+public class SqliteDatabaseManager implements  GitHubStore {
     private final String url;
 
     public SqliteDatabaseManager(String dbPath) {
@@ -14,7 +14,6 @@ public class SqliteDatabaseManager {
     private void initTable() {
         try (Connection conn = DriverManager.getConnection(url);
              Statement stmt = conn.createStatement()) {
-            // Requisito: Crear tabla si no existe
             stmt.execute("CREATE TABLE IF NOT EXISTS github_trends (" +
                     "name TEXT, stars INTEGER, language TEXT, captured_at TEXT)");
         } catch (SQLException e) { e.printStackTrace(); }
