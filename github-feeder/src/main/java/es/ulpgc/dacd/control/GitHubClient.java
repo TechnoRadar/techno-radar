@@ -31,7 +31,6 @@ public class GitHubClient implements GitHubFeeder{
     @Override
     public List<GitHubTrend> getTrends() {
         List<GitHubTrend> trends = new ArrayList<>();
-        // URL de la API de GitHub (Ej: los repos de Java con más estrellas)
         String url = "https://api.github.com/search/repositories?q=stars:>50000&sort=stars&per_page=10";
 
         try {
