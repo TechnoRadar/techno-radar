@@ -8,7 +8,6 @@ import es.ulpgc.dacd.model.StackExchangeTrend;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -16,6 +15,11 @@ import java.util.List;
 
 public class StackExchangeClient implements StackExchangeFeeder {
     private final OkHttpClient client = new OkHttpClient();
+    private final String url;
+
+    public StackExchangeClient(String url) {
+        this.url = url;
+    }
 
     public String getJson(String url) throws IOException {
         Request request = new Request.Builder().url(url).build();
@@ -32,10 +36,9 @@ public class StackExchangeClient implements StackExchangeFeeder {
     @Override
     public List<StackExchangeTrend> getTrends() {
         List<StackExchangeTrend> trends = new ArrayList<>();
-        String url = "https://api.stackexchange.com/2.3/tags?order=desc&sort=popular&site=stackoverflow";
 
         try {
-            String jsonResponse = getJson(url);
+            String jsonResponse = getJson(this.url);
 
             JsonObject jsonObject = JsonParser.parseString(jsonResponse).getAsJsonObject();
             JsonArray items = jsonObject.getAsJsonArray("items");
