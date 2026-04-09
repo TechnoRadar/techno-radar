@@ -23,4 +23,9 @@
 hs_err_pid*
 replay_pid*
 .idea/
+# Local database files
 *.db
+
+# Maven build directories
+target/
+**/target/
