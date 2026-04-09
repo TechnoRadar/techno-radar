@@ -4,25 +4,25 @@ import es.ulpgc.dacd.control.Controller;
 import es.ulpgc.dacd.control.GitHubClient;
 import es.ulpgc.dacd.persistence.SqliteDatabaseManager;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class Main {
     public static void main(String[] args) {
+        if (args.length < 2){
+            System.out.println("Error: No se ha proporcionado la URL de la fuente externa.");
+            System.out.println("Uso: java Main <githubUrl> <dbPath>");
+            return;
+        }
+
+        String githubUrl = args[0];
+        String dbPath = args[1];
+
         System.out.println("Iniciando Techno-Radar (Módulo GitHub)...");
-        SqliteDatabaseManager store = new SqliteDatabaseManager("github_trends.db");
+        System.out.println("URL configurada: " + githubUrl);
+        System.out.println("Base de Datos: " + dbPath);
 
-        GitHubClient feeder = new GitHubClient();
+        SqliteDatabaseManager store = new SqliteDatabaseManager(dbPath);
+        GitHubClient feeder = new GitHubClient(githubUrl);
+
         Controller controller = new Controller(feeder, store);
-
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                System.out.println("Descargando datos de GitHub y guardando en SQLite...");
-                controller.execute();
-                System.out.println("Actualización completada con éxito.");
-            }
-        }, 0, 3600000);
+        controller.execute();
     }
 }

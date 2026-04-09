@@ -15,7 +15,7 @@ public class SqliteDatabaseManager implements StackExchangeStore {
         try (Connection conn = DriverManager.getConnection(url);
              Statement stmt = conn.createStatement()) {
             stmt.execute("CREATE TABLE IF NOT EXISTS stackexchange_trends (" +
-                    "name TEXT, count INTEGER, captured_at TEXT)");
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, count INTEGER, captured_at TEXT)");
         } catch (SQLException e) { e.printStackTrace(); }
     }
 

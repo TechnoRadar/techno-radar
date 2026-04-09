@@ -15,6 +15,11 @@ import java.util.List;
 
 public class GitHubClient implements GitHubFeeder{
     private final OkHttpClient client = new OkHttpClient();
+    private final String url;
+
+    public GitHubClient(String url) {
+        this.url = url;
+    }
 
     public String getJson (String url) throws IOException {
         Request request = new Request.Builder().url(url).build();
@@ -31,10 +36,9 @@ public class GitHubClient implements GitHubFeeder{
     @Override
     public List<GitHubTrend> getTrends() {
         List<GitHubTrend> trends = new ArrayList<>();
-        String url = "https://api.github.com/search/repositories?q=stars:>50000&sort=stars&per_page=10";
 
         try {
-            String jsonResponse = getJson(url);
+            String jsonResponse = getJson(this.url);
 
             JsonObject jsonObject = JsonParser.parseString(jsonResponse).getAsJsonObject();
             JsonArray items = jsonObject.getAsJsonArray("items");

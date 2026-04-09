@@ -15,7 +15,7 @@ public class SqliteDatabaseManager implements  GitHubStore {
         try (Connection conn = DriverManager.getConnection(url);
              Statement stmt = conn.createStatement()) {
             stmt.execute("CREATE TABLE IF NOT EXISTS github_trends (" +
-                    "name TEXT, stars INTEGER, language TEXT, captured_at TEXT)");
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, stars INTEGER, language TEXT, captured_at TEXT)");
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
