@@ -15,7 +15,7 @@ public class Main {
         String stackexchangeUrl = args[0];
         String dbPath = args[1];
 
-        System.out.println("Iniciando Techno-Radar (Módulo GitHub)...");
+        System.out.println("Iniciando Techno-Radar (Módulo StackExchange)...");
         System.out.println("URL configurada: " + stackexchangeUrl);
         System.out.println("Base de Datos: " + dbPath);
 
