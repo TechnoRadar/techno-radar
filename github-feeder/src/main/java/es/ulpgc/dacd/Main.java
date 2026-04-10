@@ -1,17 +1,28 @@
 package es.ulpgc.dacd;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import es.ulpgc.dacd.control.Controller;
+import es.ulpgc.dacd.control.GitHubClient;
+import es.ulpgc.dacd.persistence.SqliteDatabaseManager;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
-
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+        if (args.length < 2){
+            System.out.println("Error: No se ha proporcionado la URL de la fuente externa.");
+            System.out.println("Uso: java Main <githubUrl> <dbPath>");
+            return;
         }
+
+        String githubUrl = args[0];
+        String dbPath = args[1];
+
+        System.out.println("Iniciando Techno-Radar (Módulo GitHub)...");
+        System.out.println("URL configurada: " + githubUrl);
+        System.out.println("Base de Datos: " + dbPath);
+
+        SqliteDatabaseManager store = new SqliteDatabaseManager(dbPath);
+        GitHubClient feeder = new GitHubClient(githubUrl);
+
+        Controller controller = new Controller(feeder, store);
+        controller.execute();
     }
 }
