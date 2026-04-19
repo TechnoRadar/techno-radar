@@ -24,7 +24,7 @@ public class Controller {
                 try {
                     System.out.println("Iniciando captura periódica (GitHub)...");
                     List<GitHubTrend> trends = feeder.getTrends();
-                    if (trends != null) {
+                    if (trends != null && !trends.isEmpty()) {
                         for (GitHubTrend trend : trends) {
                             store.save(trend);
                         }

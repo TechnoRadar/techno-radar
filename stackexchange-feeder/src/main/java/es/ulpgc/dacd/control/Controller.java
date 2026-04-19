@@ -24,7 +24,7 @@ public class Controller {
                 try {
                     System.out.println("Iniciando captura periódica (StackExchange)...");
                     List<StackExchangeTrend> trends = feeder.getTrends();
-                    if (trends != null) {
+                    if (trends != null && !trends.isEmpty()) {
                         for (StackExchangeTrend trend : trends) {
                             store.save(trend);
                         }
