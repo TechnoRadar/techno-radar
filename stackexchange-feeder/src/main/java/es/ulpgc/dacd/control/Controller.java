@@ -16,24 +16,28 @@ public class Controller {
         this.store = store;
     }
 
-    public void execute() {
+    public void start() {
+        System.out.println("Iniciando servicio de captura (StackExchange)...");
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                try {
-                    System.out.println("Iniciando captura periódica (StackExchange)...");
-                    List<StackExchangeTrend> trends = feeder.getTrends();
-                    if (trends != null) {
-                        for (StackExchangeTrend trend : trends) {
-                            store.save(trend);
-                        }
-                        System.out.println("Actualización completada con éxito.");
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error durante la ejecución (StackExchange): " + e.getMessage());
-                }
+                execute();
             }
         }, 0, PERIOD);
+    }
+
+    private void execute() {
+        try {
+            List<StackExchangeTrend> trends = feeder.getTrends();
+            if (trends != null && !trends.isEmpty()) {
+                for (StackExchangeTrend trend : trends) {
+                    store.save(trend);
+                }
+                System.out.println("Actualización completada y enviada a ActiveMQ.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error durante la ejecución: " + e.getMessage());
+        }
     }
 }
