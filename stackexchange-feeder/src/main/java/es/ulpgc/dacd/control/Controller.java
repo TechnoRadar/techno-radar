@@ -27,7 +27,7 @@ public class Controller {
         }, 0, PERIOD);
     }
 
-    private void execute() {
+    public void execute() {
         try {
             List<StackExchangeTrend> trends = feeder.getTrends();
             if (trends != null && !trends.isEmpty()) {
