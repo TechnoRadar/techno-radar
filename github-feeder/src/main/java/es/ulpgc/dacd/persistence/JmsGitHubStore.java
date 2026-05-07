@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
+import java.time.Instant;
 
 public class JmsGitHubStore implements GitHubStore, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(JmsGitHubStore.class);
@@ -27,6 +28,8 @@ public class JmsGitHubStore implements GitHubStore, AutoCloseable {
 
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
+
+        this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         connectToBroker(brokerUrl);
     }
 
@@ -49,10 +52,12 @@ public class JmsGitHubStore implements GitHubStore, AutoCloseable {
     @Override
     public void save(GitHubTrend trend) {
         try {
-            long timestamp = trend.capturedAt().toEpochMilli();
-            Event event = new Event(timestamp, this.sourceSystem, trend);
+            String payloadPlano = objectMapper.writeValueAsString(trend);
+
+            Event event = new Event(Instant.now(), this.sourceSystem, payloadPlano);
 
             String json = objectMapper.writeValueAsString(event);
+
             TextMessage message = session.createTextMessage(json);
             producer.send(message);
 

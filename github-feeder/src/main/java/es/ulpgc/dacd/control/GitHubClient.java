@@ -48,13 +48,13 @@ public class GitHubClient implements GitHubFeeder{
             for (JsonElement element : items) {
                 JsonObject repo = element.getAsJsonObject();
 
-                String name = repo.get("name").getAsString();
+                String repoName = repo.get("name").getAsString();
                 int stars = repo.get("stargazers_count").getAsInt();
 
                 String language = repo.has("language") && !repo.get("language").isJsonNull()
                         ? repo.get("language").getAsString()
                         : "Unknown";
-                trends.add(new GitHubTrend(name, stars, language, Instant.now()));
+                trends.add(new GitHubTrend(repoName, stars, language, Instant.now()));
             }
         } catch (IOException e) {
             System.err.println("Error al obtener datos: " + e.getMessage());

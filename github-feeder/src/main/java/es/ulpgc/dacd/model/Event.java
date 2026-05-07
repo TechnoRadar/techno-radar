@@ -1,4 +1,6 @@
 package es.ulpgc.dacd.model;
 
-public record Event(long ts, String ss, Object payload) {
+import java.time.Instant;
+
+public record Event(Instant ts, String source, String payload) {
 }

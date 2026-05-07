@@ -52,15 +52,16 @@ public class EventStoreSubscriber implements AutoCloseable {
         }
 
         JsonObject jsonObject = JsonParser.parseString(jsonEvent).getAsJsonObject();
-        long ts = jsonObject.get("ts").getAsLong();
-        String ss = jsonObject.get("ss").getAsString();
-        String dateString = Instant.ofEpochMilli(ts)
-                .atZone(ZoneId.of("UTC"))
+        String tsIso = jsonObject.get("ts").getAsString();
+        String source = jsonObject.get("source").getAsString();
+
+        Instant instant = Instant.parse(tsIso);
+        String dateString = instant.atZone(ZoneId.of("UTC"))
                 .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         String topic = destinationInfo.replace("topic://", "");
 
-        saveToFile(topic, ss, dateString, jsonEvent);
+        saveToFile(topic, source, dateString, jsonEvent);
     }
 
     private void saveToFile(String topic, String ss, String dateString, String eventData) throws IOException {

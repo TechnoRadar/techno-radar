@@ -3,7 +3,7 @@ package es.ulpgc.dacd.model;
 import java.time.Instant;
 
 public record GitHubTrend(
-        String name,
+        String repositoryName,
         int stars,
         String language,
         Instant capturedAt
