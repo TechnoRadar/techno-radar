@@ -15,10 +15,10 @@ import java.util.List;
 
 public class StackExchangeClient implements StackExchangeFeeder {
     private final OkHttpClient client = new OkHttpClient();
-    private final String url;
+    private final String baseUrl;
 
-    public StackExchangeClient(String url) {
-        this.url = url;
+    public StackExchangeClient(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
     public String getJson(String url) throws IOException {
@@ -38,7 +38,8 @@ public class StackExchangeClient implements StackExchangeFeeder {
         List<StackExchangeTrend> trends = new ArrayList<>();
 
         try {
-            String jsonResponse = getJson(this.url);
+            String url = buildUrl();
+            String jsonResponse = getJson(url);
 
             JsonObject jsonObject = JsonParser.parseString(jsonResponse).getAsJsonObject();
             JsonArray items = jsonObject.getAsJsonArray("items");
@@ -55,5 +56,8 @@ public class StackExchangeClient implements StackExchangeFeeder {
             System.err.println("Error al obtener datos: " + e.getMessage());
         }
         return trends;
+    }
+    private String buildUrl() {
+        return String.format("%s/tags?order=desc&sort=activity&site=stackoverflow", baseUrl);
     }
 }

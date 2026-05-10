@@ -2,27 +2,30 @@ package es.ulpgc.dacd;
 
 import es.ulpgc.dacd.control.Controller;
 import es.ulpgc.dacd.control.GitHubClient;
-import es.ulpgc.dacd.persistence.SqliteDatabaseManager;
+import es.ulpgc.dacd.control.GitHubFeeder;
+import es.ulpgc.dacd.persistence.GitHubStore;
+import es.ulpgc.dacd.persistence.JmsGitHubStore;
 
 public class Main {
     public static void main(String[] args) {
-        if (args.length < 2){
-            System.out.println("Error: No se ha proporcionado la URL de la fuente externa.");
-            System.out.println("Uso: java Main <githubUrl> <dbPath>");
+        if (args.length < 4){
+            System.err.println("Error: Configuración incompleta.");
+            System.err.println("Uso esperado: java Main <baseUrl> <brokerUrl> <topicName> <sourceSystem>");
             return;
         }
 
-        String githubUrl = args[0];
-        String dbPath = args[1];
+        String baseUrl = args[0];
+        String brokerUrl = args[1];
+        String topicName = args[2];
+        String sourceSystem = args[3];
 
         System.out.println("Iniciando Techno-Radar (Módulo GitHub)...");
-        System.out.println("URL configurada: " + githubUrl);
-        System.out.println("Base de Datos: " + dbPath);
+        System.out.println("-> Conectando a Broker: " + brokerUrl);
+        System.out.println("-> Publicando en Topic: " + topicName);
 
-        SqliteDatabaseManager store = new SqliteDatabaseManager(dbPath);
-        GitHubClient feeder = new GitHubClient(githubUrl);
+        GitHubFeeder feeder = new GitHubClient(baseUrl);
+        GitHubStore store = new JmsGitHubStore(brokerUrl, topicName, sourceSystem);
 
-        Controller controller = new Controller(feeder, store);
-        controller.execute();
+        new Controller(feeder, store).start();
     }
 }

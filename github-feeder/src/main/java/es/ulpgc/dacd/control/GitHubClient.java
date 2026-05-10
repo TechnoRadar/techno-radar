@@ -10,15 +10,16 @@ import okhttp3.Request;
 import okhttp3.Response;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GitHubClient implements GitHubFeeder{
     private final OkHttpClient client = new OkHttpClient();
-    private final String url;
+    private final String baseUrl;
 
-    public GitHubClient(String url) {
-        this.url = url;
+    public GitHubClient(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
     public String getJson (String url) throws IOException {
@@ -38,7 +39,8 @@ public class GitHubClient implements GitHubFeeder{
         List<GitHubTrend> trends = new ArrayList<>();
 
         try {
-            String jsonResponse = getJson(this.url);
+            String dynamicUrl = buildUrl();
+            String jsonResponse = getJson(dynamicUrl);
 
             JsonObject jsonObject = JsonParser.parseString(jsonResponse).getAsJsonObject();
             JsonArray items = jsonObject.getAsJsonArray("items");
@@ -46,17 +48,24 @@ public class GitHubClient implements GitHubFeeder{
             for (JsonElement element : items) {
                 JsonObject repo = element.getAsJsonObject();
 
-                String name = repo.get("name").getAsString();
+                String repoName = repo.get("name").getAsString();
                 int stars = repo.get("stargazers_count").getAsInt();
 
                 String language = repo.has("language") && !repo.get("language").isJsonNull()
                         ? repo.get("language").getAsString()
                         : "Unknown";
-                trends.add(new GitHubTrend(name, stars, language, Instant.now()));
+                trends.add(new GitHubTrend(repoName, stars, language, Instant.now()));
             }
         } catch (IOException e) {
             System.err.println("Error al obtener datos: " + e.getMessage());
         }
         return trends;
+    }
+
+    private String buildUrl(){
+        LocalDate lastWeek = LocalDate.now().minusDays(7);
+
+       return String.format("%s?q=created:>%s&sort=stars&order=desc&per_page=10",
+               baseUrl, lastWeek);
     }
 }
