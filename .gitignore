@@ -32,3 +32,5 @@ target/
 
 eventstore/
 *.events
+
+*.iml

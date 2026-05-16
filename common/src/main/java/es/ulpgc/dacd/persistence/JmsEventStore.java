@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import es.ulpgc.dacd.model.Event;
-import es.ulpgc.dacd.model.GitHubTrend;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import javax.jms.*;
 import java.time.Instant;
 
-public class JmsGitHubStore implements GitHubStore, AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(JmsGitHubStore.class);
+public class JmsEventStore<T> implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(JmsEventStore.class);
 
     private final String topicName;
     private final String sourceSystem;
@@ -22,14 +21,14 @@ public class JmsGitHubStore implements GitHubStore, AutoCloseable {
     private MessageProducer producer;
     private final ObjectMapper objectMapper;
 
-    public JmsGitHubStore(String brokerUrl, String topicName, String sourceSystem) {
+    public JmsEventStore(String brokerUrl, String topicName, String sourceSystem) {
         this.topicName = topicName;
         this.sourceSystem = sourceSystem;
 
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
-
         this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
         connectToBroker(brokerUrl);
     }
 
@@ -45,27 +44,21 @@ public class JmsGitHubStore implements GitHubStore, AutoCloseable {
 
             logger.info("Conectado a ActiveMQ en el topic: {}", topicName);
         } catch (JMSException e) {
-            logger.error("Error crítico: No se pudo conectar a ActiveMQ", e);
+            logger.error("Error crítico de conexión a ActiveMQ", e);
         }
     }
 
-    @Override
-    public void save(GitHubTrend trend) {
+    public void save(T data) {
         try {
-            String payloadPlano = objectMapper.writeValueAsString(trend);
-
-            Event event = new Event(Instant.now(), this.sourceSystem, payloadPlano);
-
+            Event<T> event = new Event<>(Instant.now(), this.sourceSystem, data);
             String json = objectMapper.writeValueAsString(event);
 
             TextMessage message = session.createTextMessage(json);
             producer.send(message);
 
-            logger.info("Evento enviado al broker: {}", json);
-        } catch (JsonProcessingException e) {
-            logger.error("Error al serializar el evento", e);
-        } catch (JMSException e) {
-            logger.error("Error de JMS al enviar", e);
+            logger.info("Evento enviado con éxito: {}", json);
+        } catch (JsonProcessingException | JMSException e) {
+            logger.error("Error al guardar el evento en el broker", e);
         }
     }
 
@@ -75,9 +68,9 @@ public class JmsGitHubStore implements GitHubStore, AutoCloseable {
             if (producer != null) producer.close();
             if (session != null) session.close();
             if (connection != null) connection.close();
-            logger.info("Recursos de ActiveMQ cerrados correctamente.");
+            logger.info("Recursos de JMS cerrados.");
         } catch (JMSException e) {
-            logger.error("Error al cerrar ActiveMQ", e);
+            logger.error("Error al cerrar recursos de JMS", e);
         }
     }
 }

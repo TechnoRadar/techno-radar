@@ -3,8 +3,8 @@ package es.ulpgc.dacd;
 import es.ulpgc.dacd.control.Controller;
 import es.ulpgc.dacd.control.GitHubClient;
 import es.ulpgc.dacd.control.GitHubFeeder;
-import es.ulpgc.dacd.persistence.GitHubStore;
-import es.ulpgc.dacd.persistence.JmsGitHubStore;
+import es.ulpgc.dacd.model.GitHubTrend;
+import es.ulpgc.dacd.persistence.JmsEventStore;
 
 public class Main {
     public static void main(String[] args) {
@@ -24,7 +24,8 @@ public class Main {
         System.out.println("-> Publicando en Topic: " + topicName);
 
         GitHubFeeder feeder = new GitHubClient(baseUrl);
-        GitHubStore store = new JmsGitHubStore(brokerUrl, topicName, sourceSystem);
+
+        JmsEventStore<GitHubTrend> store = new JmsEventStore<>(brokerUrl, topicName, sourceSystem);
 
         new Controller(feeder, store).start();
     }

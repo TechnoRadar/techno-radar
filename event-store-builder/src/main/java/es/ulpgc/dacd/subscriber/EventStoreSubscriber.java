@@ -1,8 +1,10 @@
 package es.ulpgc.dacd.subscriber;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
 import java.io.BufferedWriter;
@@ -14,10 +16,13 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class EventStoreSubscriber implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(EventStoreSubscriber.class);
+
     private final Connection connection;
     private final Session session;
     private final MessageConsumer consumer;
     private static final String BASE_DIR = "eventstore";
+    private final ObjectMapper mapper = new ObjectMapper(); // Sustituimos Gson por Jackson
 
     public EventStoreSubscriber(String brokerUrl, String topicName, String clientId) throws JMSException {
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
@@ -26,21 +31,21 @@ public class EventStoreSubscriber implements AutoCloseable {
         this.connection.start();
 
         this.session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Topic topic = session.createTopic(topicName);
-        this.consumer = session.createDurableSubscriber(topic, clientId + "-sub");
+        Topic destination = session.createTopic(topicName);
+        this.consumer = session.createDurableSubscriber(destination, clientId + "-sub");
     }
 
     public void start() throws JMSException {
-        System.out.println("Suscripción duradera iniciada. Escuchando eventos...");
+        logger.info("Suscripción duradera iniciada. Escuchando eventos...");
 
         consumer.setMessageListener(message -> {
             if (message instanceof TextMessage textMessage) {
                 try {
                     String jsonEvent = textMessage.getText();
-                    String destination = message.getJMSDestination().toString();
-                    processMessage(jsonEvent, destination);
+                    String destinationInfo = message.getJMSDestination().toString();
+                    processMessage(jsonEvent, destinationInfo);
                 } catch (JMSException | IOException e) {
-                    System.err.println("Error procesando mensaje: " + e.getMessage());
+                    logger.error("Error procesando mensaje: ", e );
                 }
             }
         });
@@ -51,9 +56,9 @@ public class EventStoreSubscriber implements AutoCloseable {
             return;
         }
 
-        JsonObject jsonObject = JsonParser.parseString(jsonEvent).getAsJsonObject();
-        String tsIso = jsonObject.get("ts").getAsString();
-        String source = jsonObject.get("source").getAsString();
+        JsonNode rootNode = mapper.readTree(jsonEvent);
+        String tsIso = rootNode.get("ts").asText();
+        String source = rootNode.get("ss").asText();
 
         Instant instant = Instant.parse(tsIso);
         String dateString = instant.atZone(ZoneId.of("UTC"))
@@ -85,6 +90,6 @@ public class EventStoreSubscriber implements AutoCloseable {
         if (consumer != null) consumer.close();
         if (session != null) session.close();
         if (connection != null) connection.close();
-        System.out.println("Recursos del Subscriber cerrados.");
+        logger.info("Recursos del Subscriber cerrados.");
     }
 }

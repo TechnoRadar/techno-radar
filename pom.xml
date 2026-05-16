@@ -19,6 +19,7 @@
         <module>github-feeder</module>
         <module>stackexchange-feeder</module>
         <module>event-store-builder</module>
+        <module>common</module>
     </modules>
 
     <dependencies>
