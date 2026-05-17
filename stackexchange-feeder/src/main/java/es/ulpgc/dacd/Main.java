@@ -2,8 +2,8 @@ package es.ulpgc.dacd;
 
 import es.ulpgc.dacd.control.Controller;
 import es.ulpgc.dacd.control.StackExchangeClient;
-import es.ulpgc.dacd.persistence.JmsStackExchangeStore;
-import es.ulpgc.dacd.persistence.StackExchangeStore;
+import es.ulpgc.dacd.model.StackExchangeTrend;
+import es.ulpgc.dacd.persistence.JmsEventStore; // Usamos el de common
 
 public class Main {
     public static void main(String[] args) {
@@ -20,10 +20,10 @@ public class Main {
         System.out.println("Iniciando Techno-Radar (Módulo StackExchange)...");
 
         StackExchangeClient feeder = new StackExchangeClient(apiUrl);
-        // Instanciamos el nuevo JMS Store
-        StackExchangeStore store = new JmsStackExchangeStore(brokerUrl, topicName, sourceSystem);
+
+        JmsEventStore<StackExchangeTrend> store = new JmsEventStore<>(brokerUrl, topicName, sourceSystem);
 
         Controller controller = new Controller(feeder, store);
-        controller.execute();
+        controller.start();
     }
 }

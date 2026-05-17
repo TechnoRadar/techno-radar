@@ -22,7 +22,7 @@ public class EventStoreSubscriber implements AutoCloseable {
     private final Session session;
     private final MessageConsumer consumer;
     private static final String BASE_DIR = "eventstore";
-    private final ObjectMapper mapper = new ObjectMapper(); // Sustituimos Gson por Jackson
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public EventStoreSubscriber(String brokerUrl, String topicName, String clientId) throws JMSException {
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
