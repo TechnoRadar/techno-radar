@@ -1,39 +1,50 @@
 package es.ulpgc.dacd.control;
 
 import es.ulpgc.dacd.model.StackExchangeTrend;
-import es.ulpgc.dacd.persistence.StackExchangeStore;
+import es.ulpgc.dacd.persistence.JmsEventStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class Controller {
-    private final StackExchangeFeeder feeder;
-    private final StackExchangeStore store;
-    private static final long PERIOD = 3600000;
+    private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
-    public Controller(StackExchangeFeeder feeder, StackExchangeStore store) {
+    private final StackExchangeFeeder feeder;
+    private final JmsEventStore<StackExchangeTrend> store;
+    private static final long POLLING_PERIOD_MS = 1800000;
+
+    public Controller(StackExchangeFeeder feeder, JmsEventStore<StackExchangeTrend> store) {
         this.feeder = feeder;
         this.store = store;
     }
 
-    public void execute() {
+    public void start() {
+        logger.info("Iniciando servicio de captura periódica (StackExchange)...");
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                try {
-                    System.out.println("Iniciando captura periódica (StackExchange)...");
-                    List<StackExchangeTrend> trends = feeder.getTrends();
-                    if (trends != null) {
-                        for (StackExchangeTrend trend : trends) {
-                            store.save(trend);
-                        }
-                        System.out.println("Actualización completada con éxito.");
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error durante la ejecución (StackExchange): " + e.getMessage());
-                }
+                execute();
             }
-        }, 0, PERIOD);
+        }, 0, POLLING_PERIOD_MS);
+    }
+
+    public void execute() {
+        try {
+            List<StackExchangeTrend> trends = feeder.getTrends();
+            if (trends != null && !trends.isEmpty()) {
+                for (StackExchangeTrend trend : trends) {
+                    store.save(trend);
+                }
+                logger.info("Actualización completada y enviada a ActiveMQ. Procesados: {}", trends.size());
+            } else {
+                logger.warn("No se obtuvieron tendencias de StackExchange.");
+            }
+        } catch (Exception e) {
+            logger.error("Error durante la ejecución del controlador", e);
+        }
     }
 }

@@ -29,3 +29,8 @@ replay_pid*
 # Maven build directories
 target/
 **/target/
+
+eventstore/
+*.events
+
+*.iml

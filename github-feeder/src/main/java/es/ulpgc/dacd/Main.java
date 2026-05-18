@@ -2,27 +2,35 @@ package es.ulpgc.dacd;
 
 import es.ulpgc.dacd.control.Controller;
 import es.ulpgc.dacd.control.GitHubClient;
-import es.ulpgc.dacd.persistence.SqliteDatabaseManager;
+import es.ulpgc.dacd.control.GitHubFeeder;
+import es.ulpgc.dacd.model.GitHubTrend;
+import es.ulpgc.dacd.persistence.JmsEventStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
     public static void main(String[] args) {
-        if (args.length < 2){
-            System.out.println("Error: No se ha proporcionado la URL de la fuente externa.");
-            System.out.println("Uso: java Main <githubUrl> <dbPath>");
+        if (args.length < 4){
+            logger.error("Error: Configuración incompleta.");
+            logger.error("Uso esperado: java Main <baseUrl> <brokerUrl> <topicName> <sourceSystem>");
             return;
         }
 
-        String githubUrl = args[0];
-        String dbPath = args[1];
+        String baseUrl = args[0];
+        String brokerUrl = args[1];
+        String topicName = args[2];
+        String sourceSystem = args[3];
 
-        System.out.println("Iniciando Techno-Radar (Módulo GitHub)...");
-        System.out.println("URL configurada: " + githubUrl);
-        System.out.println("Base de Datos: " + dbPath);
+        logger.info("Iniciando Techno-Radar (Módulo GitHub)...");
+        logger.info("-> Conectando a Broker: {}", brokerUrl);
+        logger.info("-> Publicando en Topic: {}", topicName);
 
-        SqliteDatabaseManager store = new SqliteDatabaseManager(dbPath);
-        GitHubClient feeder = new GitHubClient(githubUrl);
+        GitHubFeeder feeder = new GitHubClient(baseUrl);
 
-        Controller controller = new Controller(feeder, store);
-        controller.execute();
+        JmsEventStore<GitHubTrend> store = new JmsEventStore<>(brokerUrl, topicName, sourceSystem);
+
+        new Controller(feeder, store).start();
     }
 }
