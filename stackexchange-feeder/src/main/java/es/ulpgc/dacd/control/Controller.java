@@ -14,7 +14,7 @@ public class Controller {
 
     private final StackExchangeFeeder feeder;
     private final JmsEventStore<StackExchangeTrend> store;
-    private static final long PERIOD = 3600000;
+    private static final long POLLING_PERIOD_MS = 1800000;
 
     public Controller(StackExchangeFeeder feeder, JmsEventStore<StackExchangeTrend> store) {
         this.feeder = feeder;
@@ -29,7 +29,7 @@ public class Controller {
             public void run() {
                 execute();
             }
-        }, 0, PERIOD);
+        }, 0, POLLING_PERIOD_MS);
     }
 
     public void execute() {

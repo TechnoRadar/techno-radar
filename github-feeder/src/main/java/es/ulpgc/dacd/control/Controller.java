@@ -14,7 +14,7 @@ public class Controller {
 
     private final GitHubFeeder feeder;
     private final JmsEventStore<GitHubTrend> store;
-    private static final long POLLING_PERIOD_MS = 10000;
+    private static final long POLLING_PERIOD_MS = 1800000;
 
     public Controller(GitHubFeeder feeder, JmsEventStore<GitHubTrend> store) {
         this.feeder = feeder;

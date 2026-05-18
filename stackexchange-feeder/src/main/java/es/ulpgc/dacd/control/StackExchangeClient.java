@@ -8,17 +8,21 @@ import es.ulpgc.dacd.model.StackExchangeTrend;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 public class StackExchangeClient implements StackExchangeFeeder {
+    private static final Logger logger = LoggerFactory.getLogger(StackExchangeClient.class);
     private final OkHttpClient client = new OkHttpClient();
     private final String baseUrl;
 
     public StackExchangeClient(String baseUrl) {
-        this.baseUrl = baseUrl;
+        this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
     }
 
     public String getJson(String url) throws IOException {
@@ -39,6 +43,7 @@ public class StackExchangeClient implements StackExchangeFeeder {
 
         try {
             String url = buildUrl();
+            logger.info("Llamando a la API de StackExchange: {}", url);
             String jsonResponse = getJson(url);
 
             JsonObject jsonObject = JsonParser.parseString(jsonResponse).getAsJsonObject();
@@ -53,11 +58,10 @@ public class StackExchangeClient implements StackExchangeFeeder {
                 trends.add(new StackExchangeTrend(name, count, Instant.now()));
             }
         } catch (IOException e) {
-            System.err.println("Error al obtener datos: " + e.getMessage());
-        }
+            logger.error("Error al obtener datos de StackExchange", e);        }
         return trends;
     }
     private String buildUrl() {
-        return String.format("%s/tags?order=desc&sort=activity&site=stackoverflow", baseUrl);
+        return String.format("%s/tags?order=desc&sort=activity&site=stackoverflow&pagesize=30", baseUrl);
     }
 }

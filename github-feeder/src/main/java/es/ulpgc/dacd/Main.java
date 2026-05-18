@@ -5,12 +5,16 @@ import es.ulpgc.dacd.control.GitHubClient;
 import es.ulpgc.dacd.control.GitHubFeeder;
 import es.ulpgc.dacd.model.GitHubTrend;
 import es.ulpgc.dacd.persistence.JmsEventStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
     public static void main(String[] args) {
         if (args.length < 4){
-            System.err.println("Error: Configuración incompleta.");
-            System.err.println("Uso esperado: java Main <baseUrl> <brokerUrl> <topicName> <sourceSystem>");
+            logger.error("Error: Configuración incompleta.");
+            logger.error("Uso esperado: java Main <baseUrl> <brokerUrl> <topicName> <sourceSystem>");
             return;
         }
 
@@ -19,9 +23,9 @@ public class Main {
         String topicName = args[2];
         String sourceSystem = args[3];
 
-        System.out.println("Iniciando Techno-Radar (Módulo GitHub)...");
-        System.out.println("-> Conectando a Broker: " + brokerUrl);
-        System.out.println("-> Publicando en Topic: " + topicName);
+        logger.info("Iniciando Techno-Radar (Módulo GitHub)...");
+        logger.info("-> Conectando a Broker: {}", brokerUrl);
+        logger.info("-> Publicando en Topic: {}", topicName);
 
         GitHubFeeder feeder = new GitHubClient(baseUrl);
 

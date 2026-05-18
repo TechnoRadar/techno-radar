@@ -5,21 +5,24 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import es.ulpgc.dacd.model.GitHubTrend;
+import java.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GitHubClient implements GitHubFeeder{
+    private static final Logger logger = LoggerFactory.getLogger(GitHubClient.class);
     private final OkHttpClient client = new OkHttpClient();
     private final String baseUrl;
 
     public GitHubClient(String baseUrl) {
-        this.baseUrl = baseUrl;
+        this.baseUrl =  baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
     }
 
     public String getJson (String url) throws IOException {
@@ -40,6 +43,7 @@ public class GitHubClient implements GitHubFeeder{
 
         try {
             String dynamicUrl = buildUrl();
+            logger.info("Llamando a la API de GitHub: {}", dynamicUrl);
             String jsonResponse = getJson(dynamicUrl);
 
             JsonObject jsonObject = JsonParser.parseString(jsonResponse).getAsJsonObject();
@@ -57,7 +61,7 @@ public class GitHubClient implements GitHubFeeder{
                 trends.add(new GitHubTrend(repoName, stars, language, Instant.now()));
             }
         } catch (IOException e) {
-            System.err.println("Error al obtener datos: " + e.getMessage());
+            logger.error("Error al obtener datos de GitHub", e);
         }
         return trends;
     }
@@ -65,7 +69,7 @@ public class GitHubClient implements GitHubFeeder{
     private String buildUrl(){
         LocalDate lastWeek = LocalDate.now().minusDays(7);
 
-       return String.format("%s?q=created:>%s&sort=stars&order=desc&per_page=10",
+       return String.format("%s/search/repositories?q=created:>%s&sort=stars&order=desc&per_page=10",
                baseUrl, lastWeek);
     }
 }
