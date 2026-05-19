@@ -1,46 +1,58 @@
-# 📡 Techno Radar - Sprint 1
+🚀 Techno Radar
+Plataforma Avanzada de Análisis de Tendencias Tecnológicas
+Java Maven Javalin SQLite
 
-**Techno Radar** es una aplicación desarrollada en Java para la captura, procesamiento y persistencia de datos dinámicos provenientes de fuentes externas. Este proyecto forma parte de la asignatura *Desarrollo de Aplicaciones para Ciencia de Datos* de la ULPGC.
+Empoderando a desarrolladores e innovadores con insights impulsados por análisis integral de repositorios GitHub e integración de datos de Stack Exchange en tiempo real.
 
----
+📋 Tabla de Contenidos
+- 📜 Descripción
+- ✨ Características
+- 🔌 APIs Utilizadas
+- 🏗️ Arquitectura
+- 💾 Estructura del Datamart
+- 📐 Diagramas de Clases
+- 🔧 Requisitos
+- 🚀 Instalación y Uso
+- 👥 Autores
+- 📄 Licencia
 
-## 🎯 Objetivo del Sprint 1
-El objetivo principal es desarrollar un proyecto multimódulo que consuma datos de dos fuentes externas de forma independiente y los almacene en una base de datos local.
+📜 Descripción
+Techno Radar es una plataforma de análisis de tendencias tecnológicas que estudia distintos parámetros de las tecnologías más populares basándose en su actividad en GitHub y en Stack Exchange. El objetivo es proporcionar a desarrolladores, innovadores y empresas información detallada y relevante que les permita identificar qué tecnologías están en auge, cuáles están consolidadas y cuáles están en declive.
 
-> [!IMPORTANT]
-> **Persistencia Incremental**: Los datos se guardan de forma acumulativa sin borrar ni sobrescribir capturas anteriores. Cada registro incluye una marca temporal (`captured_at`) para permitir el análisis de su evolución en el tiempo.
+Además de los datos de GitHub (estrellas, actividad), el sistema utiliza información proveniente de Stack Exchange (cantidad de preguntas), permitiendo obtener datos de calidad de cada tecnología. El resultado es un datamart consolidado y actualizado que permite visualizar tendencias en tiempo real a través de un dashboard interactivo.
 
----
+✨ Características
+Techno Radar ofrece un conjunto completo de características diseñadas para proporcionar análisis profundos y precisos de tendencias tecnológicas:
 
-## 🏗️ Arquitectura y Diseño
-El sistema sigue una estructura multimódulo en **Java 21**. Cada módulo de captura (feeder) gestiona su propia lógica de obtención y persistencia:
+- 🔍 Recolección de Datos en Tiempo Real: Extracción automatizada de datos desde las APIs de GitHub y Stack Exchange
+- 📊 Análisis Combinado: Integración de métricas de GitHub (estrellas) y Stack Exchange (preguntas)
+- 🎯 Score Combinado: Algoritmo que pondera ambas fuentes para obtener una puntuación 0-100
+- 📈 Análisis de Tendencias: Detección automática de tecnologías en crecimiento, decrecimiento o estables
+- ❤️ Índice de Salud Tecnológica: Métrica que evalúa la salud general de cada tecnología
+- 🖥️ Dashboard Interactivo: Visualización en tiempo real con 5 gráficos diferentes
+- 🔄 API REST: Endpoints para consumir datos de tendencias
+- ⏱️ Actualizaciones Periódicas cada 10 segundos para mantener datos recientes
+- 📋 Pruebas Exhaustivas: Arquitectura modular y bien testeable
 
-* **Módulo de Consumo**: Implementa clientes para APIs o técnicas de Scraping.
-* **Módulo de Transformación**: Normaliza los datos crudos (JSON/HTML) a un modelo interno de la aplicación.
-* **Módulo de Persistencia**: Gestiona la inserción incremental en tablas de **SQLite**.
+🔌 APIs Utilizadas
+Hemos escogido la API de GitHub y la de Stack Exchange por su relevancia en la comunidad tecnológica global, siendo fuentes confiables de actividad y popularidad de tecnologías.
 
----
+- 📊 GitHub API: Nos permite analizar la popularidad de proyectos relacionados con cada tecnología, medida en estrellas
+- 💬 Stack Exchange API: Proporciona datos sobre la cantidad de preguntas realizadas, indicando el nivel de soporte comunitario y problemas enfrentados
 
-## 🛠️ Requisitos Técnicos
-* **Lenguaje:** Java 21.
-* **IDE:** IntelliJ IDEA.
-* **Base de Datos:** SQLite.
+La combinación de ambas fuentes permite correlacionar la popularidad con la actividad comunitaria, proporcionando una visión holística de cada tecnología.
 
-> [!NOTE]
-> La captura de datos se realiza de forma periódica mediante el uso de `ScheduledExecutorService`, respetando los límites de acceso de las fuentes externas.
+🏗️ Arquitectura
 
----
-
-## 🧼 Estándares de Código (Clean Code)
-Este proyecto se adhiere a la guía de estilo de la asignatura y a los principios de *Agile Software Craftsmanship*:
-* **Identificadores:** Todo el código está escrito en inglés con nombres significativos.
-* **CamelCase:** Uso de `PascalCase` para clases y `camelCase` para variables y métodos.
-* **Principios SOLID:** Se fomenta la modularidad y la responsabilidad única en los métodos (menos de 10 líneas por método).
-* **D.R.Y:** Evitamos la duplicación de código mediante una estructura limpia y reutilizable.
-
----
-
-## 👥 Autores
-* **[Lucas Rodríguez Hernández](https://github.com/Luucaaass)**
-* **[Javier Bolívar García-Izquierdo](https://github.com/Javi05x)** 
-* **Institución:** [Universidad de Las Palmas de Gran Canaria.](https://www10.ulpgc.es/)
+```mermaid
+graph LR
+    A["GitHub API"] -->|Extrae estrellas| B["GitHub Feeder"]
+    C["Stack Exchange API"] -->|Extrae preguntas| D["Stack Exchange Feeder"]
+    B -->|Publica eventos| E["ActiveMQ"]
+    D -->|Publica eventos| E
+    E -->|Consume eventos| F["Event Store Builder"]
+    F -->|Almacena eventos| G["Event Store"]
+    G -->|Lee eventos| H["Business Unit"]
+    H -->|Procesa datos| I["SQLite Datamart"]
+    I -->|Consulta datos| J["REST API"]
+    J -->|Visualiza| K["Dashboard"]
