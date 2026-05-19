@@ -20,6 +20,7 @@
         <module>stackexchange-feeder</module>
         <module>event-store-builder</module>
         <module>common</module>
+        <module>business-unit</module>
     </modules>
 
     <dependencies>

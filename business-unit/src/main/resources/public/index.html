@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Techno Radar - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f0f2f5; color: #333; margin: 0; padding: 20px;}
+        h1 { font-size: 2.5rem; color: #2c3e50; }
+        .chart-container { background: white; width: 90%; max-width: 900px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+<h1>🚀 Techno Radar Dashboard</h1>
+<p>Top 15 Tecnologías combinando GitHub y StackExchange.</p>
+
+<div class="chart-container">
+    <canvas id="trendsChart"></canvas>
+</div>
+
+<script>
+    let myChart = null;
+
+    async function loadData() {
+        try {
+            const response = await fetch('/api/trends');
+            const data = await response.json();
+
+            const top15 = data.slice(0, 15);
+
+            const labels = top15.map(t => t.technology.toUpperCase());
+            const githubData = top15.map(t => t.githubStars);
+            const stackData = top15.map(t => t.stackExchangeQuestions);
+
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+
+            if (myChart != null) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Estrellas de GitHub 🌟',
+                            data: githubData,
+                            backgroundColor: '#24292e',
+                            borderRadius: 5
+                        },
+                        {
+                            label: 'Preguntas en StackExchange 💬',
+                            data: stackData,
+                            backgroundColor: '#f48024',
+                            borderRadius: 5
+                        }
+                    ]
+                },
+                options: { responsive: true }
+            });
+        } catch (error) {
+            console.error("Error cargando los datos", error);
+        }
+    }
+
+    loadData();
+
+    setInterval(loadData, 10000);
+</script>
+
+</body>
+</html>
