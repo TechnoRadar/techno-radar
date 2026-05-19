@@ -1,7 +1,4 @@
-Tienes razón, disculpa. Aquí está el README.md **COMPLETO** sin salidas de código:
-
-
-🚀 Techno Radar
+# 🚀 Techno Radar
 **Plataforma Avanzada de Análisis de Tendencias Tecnológicas**
 
 ![Java](https://img.shields.io/badge/Java-21-blue?style=flat-square)
