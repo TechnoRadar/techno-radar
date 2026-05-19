@@ -1,7 +1,6 @@
 package es.ulpgc.dacd.business.api;
 
 import es.ulpgc.dacd.business.datamart.SQLiteDatamart;
-import es.ulpgc.dacd.persistence.JmsEventStore;
 import io.javalin.Javalin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +33,18 @@ public class BusinessApi {
                 ctx.status(404).result("No hay tendencias disponibles.");
             } else {
                 ctx.json(trends);
+            }
+        });
+
+        app.get("/api/trends/{technology}/history", ctx -> {
+            String technology = ctx.pathParam("technology");
+            logger.info("Solicitud de historial para: {}", technology);
+            List<Map<String, Object>> history = datamart.getTrendHistory(technology);
+
+            if (history.isEmpty()) {
+                ctx.status(404).result("No hay historial para: " + technology);
+            } else {
+                ctx.json(history);
             }
         });
 

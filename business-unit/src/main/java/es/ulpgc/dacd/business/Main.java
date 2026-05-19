@@ -7,13 +7,16 @@ import es.ulpgc.dacd.business.subscriber.BusinessSubscriber;
 
 public class Main {
     public static void main(String[] args) {
-        SQLiteDatamart datamart = new SQLiteDatamart("datamart.db");
+        String dbPath = args.length > 0 ? args[0] : "datamart.db";
+        String eventStorePath = args.length > 1 ? args[1] : "./eventstore";
+        String brokerUrl = args.length > 2 ? args[2] : "tcp://localhost:61616";
+        int port = args.length > 3 ? Integer.parseInt(args[3]) : 8081;
 
-        String eventStorePath = "C:\\Users\\User\\IdeaProjects\\techno-radar\\eventstore";
+        SQLiteDatamart datamart = new SQLiteDatamart(dbPath);
+
         EventStoreReader reader = new EventStoreReader(datamart, eventStorePath);
         reader.loadHistory();
 
-        String brokerUrl = "tcp://localhost:61616";
         BusinessSubscriber subscriber = new BusinessSubscriber(datamart, brokerUrl);
         try {
             subscriber.start();
@@ -21,7 +24,7 @@ public class Main {
             System.err.println("Error conectando a ActiveMQ: " + e.getMessage());
         }
 
-        BusinessApi api = new BusinessApi(datamart, 8081);
+        BusinessApi api = new BusinessApi(datamart, port);
         api.start();
     }
 }

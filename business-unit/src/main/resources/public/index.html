@@ -6,69 +6,266 @@
     <title>Techno Radar - Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f0f2f5; color: #333; margin: 0; padding: 20px;}
-        h1 { font-size: 2.5rem; color: #2c3e50; }
-        .chart-container { background: white; width: 90%; max-width: 900px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-size: 2.5rem;
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            width: 100%;
+            height: 450px;
+        }
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        /* Tabla de métricas */
+        .metrics-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            padding: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9rem;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .score-bar {
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f);
+            height: 6px;
+            border-radius: 3px;
+            min-width: 50px;
+        }
+        .trend-up { color: #27ae60; font-weight: bold; }
+        .trend-down { color: #e74c3c; font-weight: bold; }
+        .trend-stable { color: #95a5a6; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<h1>🚀 Techno Radar Dashboard</h1>
-<p>Top 15 Tecnologías combinando GitHub y StackExchange.</p>
+<div class="container">
+    <h1>🚀 Techno Radar Dashboard</h1>
+    <p class="subtitle">Análisis combinado de GitHub Trends y StackExchange Activity</p>
 
-<div class="chart-container">
-    <canvas id="trendsChart"></canvas>
+    <div class="chart-container">
+        <div class="chart-title">📊 Comparativa: GitHub vs StackExchange</div>
+        <canvas id="trendsChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart-title">⭐ Score Combinado (0-100)</div>
+        <canvas id="scoreChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart-title">📈 Tendencias Actuales</div>
+        <canvas id="trendChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart-title">❤️ Índice de Salud Tecnológica</div>
+        <canvas id="healthChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart-title">🎯 Radar: Top 5 Tecnologías</div>
+        <canvas id="radarChart"></canvas>
+    </div>
+
+    <!-- Tabla de Métricas -->
+    <div class="metrics-table">
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Tecnología</th>
+                <th>GitHub ⭐</th>
+                <th>StackExchange 💬</th>
+                <th>Score</th>
+                <th>Tendencia</th>
+                <th>Salud</th>
+            </tr>
+            </thead>
+            <tbody id="metricsTableBody">
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    let myChart = null;
+    let charts = {};
 
     async function loadData() {
         try {
             const response = await fetch('/api/trends');
             const data = await response.json();
-
             const top15 = data.slice(0, 15);
+            const top5 = data.slice(0, 5);
 
-            const labels = top15.map(t => t.technology.toUpperCase());
-            const githubData = top15.map(t => t.githubStars);
-            const stackData = top15.map(t => t.stackExchangeQuestions);
-
-            const ctx = document.getElementById('trendsChart').getContext('2d');
-
-            if (myChart != null) {
-                myChart.destroy();
-            }
-
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Estrellas de GitHub 🌟',
-                            data: githubData,
-                            backgroundColor: '#24292e',
-                            borderRadius: 5
-                        },
-                        {
-                            label: 'Preguntas en StackExchange 💬',
-                            data: stackData,
-                            backgroundColor: '#f48024',
-                            borderRadius: 5
-                        }
-                    ]
-                },
-                options: { responsive: true }
-            });
+            updateBarChart(top15);
+            updateScoreChart(top15);
+            updateTrendChart(top15);
+            updateHealthChart(top15);
+            updateRadarChart(top5);
+            updateMetricsTable(top15);
         } catch (error) {
-            console.error("Error cargando los datos", error);
+            console.error("Error cargando datos:", error);
         }
     }
 
-    loadData();
+    function updateBarChart(data) {
+        const labels = data.map(t => t.technology.toUpperCase());
+        const githubData = data.map(t => t.githubStars);
+        const stackData = data.map(t => t.stackExchangeQuestions);
 
-    setInterval(loadData, 10000);
+        const ctx = document.getElementById('trendsChart').getContext('2d');
+        if (charts.bar) charts.bar.destroy();
+
+        charts.bar = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'GitHub Stars', data: githubData, backgroundColor: '#24292e', borderRadius: 5 },
+                    { label: 'StackExchange Questions', data: stackData, backgroundColor: '#f48024', borderRadius: 5 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+        });
+    }
+
+    function updateScoreChart(data) {
+        const labels = data.map(t => t.technology.toUpperCase());
+        const scores = data.map(t => t.combinedScore.toFixed(1));
+        const colors = scores.map(s => s > 70 ? '#27ae60' : s > 50 ? '#f39c12' : '#e74c3c');
+
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        if (charts.score) charts.score.destroy();
+
+        charts.score = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: 'Score (0-100)', data: scores, backgroundColor: colors, borderRadius: 5 }] },
+            options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', plugins: { legend: { display: false } }, scales: { y: { max: 100, beginAtZero: true } } }
+        });
+    }
+
+    function updateTrendChart(data) {
+        const labels = data.map(t => t.technology.toUpperCase());
+        const trendData = data.map(t => t.trend === 'UP' ? 3 : t.trend === 'DOWN' ? 1 : 2);
+        const colors = data.map(t => t.trend === 'UP' ? '#27ae60' : t.trend === 'DOWN' ? '#e74c3c' : '#95a5a6');
+
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        if (charts.trend) charts.trend.destroy();
+
+        charts.trend = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: 'Tendencia', data: trendData, backgroundColor: colors, borderRadius: 5 }] },
+            options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 3, ticks: { callback: (v) => v === 3 ? '📈 UP' : v === 1 ? '📉 DOWN' : '➡️ STABLE' } } } }
+        });
+    }
+
+    function updateHealthChart(data) {
+        const labels = data.map(t => t.technology.toUpperCase());
+        const health = data.map(t => t.healthIndex.toFixed(1));
+
+        const ctx = document.getElementById('healthChart').getContext('2d');
+        if (charts.health) charts.health.destroy();
+
+        charts.health = new Chart(ctx, {
+            type: 'line',
+            data: { labels: labels, datasets: [{ label: 'Health Index', data: health, borderColor: '#667eea', backgroundColor: 'rgba(102, 126, 234, 0.1)', borderWidth: 3, fill: true, tension: 0.4, pointRadius: 5, pointBackgroundColor: '#667eea' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { max: 100, beginAtZero: true } } }
+        });
+    }
+
+    function updateRadarChart(data) {
+        const labels = data.map(t => t.technology.toUpperCase());
+        const normalizedStars = data.map(t => Math.min(t.githubStars / 10, 100));
+        const normalizedQuestions = data.map(t => Math.min(t.stackExchangeQuestions / 10000, 100));
+        const health = data.map(t => t.healthIndex);
+
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        if (charts.radar) charts.radar.destroy();
+
+        charts.radar = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'GitHub Popularidad', data: normalizedStars, borderColor: '#24292e', backgroundColor: 'rgba(36, 41, 46, 0.2)', borderWidth: 2, pointRadius: 3 },
+                    { label: 'StackExchange Actividad', data: normalizedQuestions, borderColor: '#f48024', backgroundColor: 'rgba(244, 128, 36, 0.2)', borderWidth: 2, pointRadius: 3 },
+                    { label: 'Índice de Salud', data: health, borderColor: '#667eea', backgroundColor: 'rgba(102, 126, 234, 0.2)', borderWidth: 2, pointRadius: 3 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 10 } } } }, scales: { r: { max: 100, beginAtZero: true } } }
+        });
+    }
+
+    function updateMetricsTable(data) {
+        const tbody = document.getElementById('metricsTableBody');
+        tbody.innerHTML = '';
+        data.forEach((tech, index) => {
+            const trendClass = tech.trend === 'UP' ? 'trend-up' : tech.trend === 'DOWN' ? 'trend-down' : 'trend-stable';
+            const trendSymbol = tech.trend === 'UP' ? '📈' : tech.trend === 'DOWN' ? '📉' : '➡️';
+            const row = `
+                <tr>
+                    <td><strong>${index + 1}</strong></td>
+                    <td><strong>${tech.technology.toUpperCase()}</strong></td>
+                    <td>${tech.githubStars}</td>
+                    <td>${tech.stackExchangeQuestions}</td>
+                    <td><div class="score-bar" style="width: ${tech.combinedScore * 0.8}px;"></div>${tech.combinedScore.toFixed(1)}</td>
+                    <td class="${trendClass}">${trendSymbol} ${tech.trend}</td>
+                    <td>${tech.healthIndex.toFixed(1)}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    loadData();
+    setInterval(loadData, 15000);
 </script>
 
 </body>
