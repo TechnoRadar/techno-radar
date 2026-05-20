@@ -49,16 +49,22 @@ public class GitHubClient implements GitHubFeeder{
             JsonObject jsonObject = JsonParser.parseString(jsonResponse).getAsJsonObject();
             JsonArray items = jsonObject.getAsJsonArray("items");
 
-            for (JsonElement element : items) {
-                JsonObject repo = element.getAsJsonObject();
+            for (JsonElement itemElement : items) {
+                JsonObject item = itemElement.getAsJsonObject();
 
-                String repoName = repo.get("name").getAsString();
-                int stars = repo.get("stargazers_count").getAsInt();
+                String repositoryName = item.get("name").getAsString();
+                int stars = item.get("stargazers_count").getAsInt();
 
-                String language = repo.has("language") && !repo.get("language").isJsonNull()
-                        ? repo.get("language").getAsString()
+                JsonElement languageElement = item.get("language");
+                String language = item.has("language") && !item.get("language").isJsonNull()
+                        ? item.get("language").getAsString()
                         : "Unknown";
-                trends.add(new GitHubTrend(repoName, stars, language, Instant.now()));
+
+                if (language.equalsIgnoreCase("Unknown") || language.equalsIgnoreCase("null") || language.trim().isEmpty()) {
+                    continue;
+                }
+
+                trends.add(new GitHubTrend(repositoryName, stars, language, Instant.now()));
             }
         } catch (IOException e) {
             logger.error("Error al obtener datos de GitHub", e);
@@ -69,7 +75,7 @@ public class GitHubClient implements GitHubFeeder{
     private String buildUrl(){
         LocalDate lastWeek = LocalDate.now().minusDays(7);
 
-       return String.format("%s/search/repositories?q=created:>%s&sort=stars&order=desc&per_page=10",
+       return String.format("%s/search/repositories?q=created:>%s&sort=stars&order=desc&per_page=100",
                baseUrl, lastWeek);
     }
 }

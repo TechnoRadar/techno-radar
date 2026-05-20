@@ -1,5 +1,6 @@
 package es.ulpgc.dacd.business.api;
 
+import com.google.gson.Gson;
 import es.ulpgc.dacd.business.datamart.SQLiteDatamart;
 import io.javalin.Javalin;
 import org.slf4j.Logger;
@@ -19,14 +20,14 @@ public class BusinessApi {
         this.port = port;
     }
 
-    public void start() {
+    public void start(int i) {
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("/public");
         }).start(port);
 
         app.get("/api/trends", ctx -> {
             logger.info("Solicitud GET recibida en /api/trends");
-            List<Map<String, Object>> trends = datamart.getAllTrends();
+            List<Map<String, Object>> trends = datamart.getTrends();
 
             if (trends.isEmpty()) {
                 logger.warn("El Datamart está vacío.");
@@ -34,6 +35,10 @@ public class BusinessApi {
             } else {
                 ctx.json(trends);
             }
+        });
+
+        app.get("/api/trends/emerging", ctx -> {
+            ctx.json(datamart.getEmergingTrends());
         });
 
         app.get("/api/trends/{technology}/history", ctx -> {
@@ -46,6 +51,7 @@ public class BusinessApi {
             } else {
                 ctx.json(history);
             }
+
         });
 
         logger.info("🚀 API y Dashboard iniciados. Entra en: http://localhost:{}", port);

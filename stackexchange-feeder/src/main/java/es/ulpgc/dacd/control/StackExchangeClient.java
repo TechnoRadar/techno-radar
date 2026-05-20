@@ -15,6 +15,9 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StackExchangeClient implements StackExchangeFeeder {
     private static final Logger logger = LoggerFactory.getLogger(StackExchangeClient.class);
@@ -40,6 +43,7 @@ public class StackExchangeClient implements StackExchangeFeeder {
     @Override
     public List<StackExchangeTrend> getTrends() {
         List<StackExchangeTrend> trends = new ArrayList<>();
+        Map<String, Integer> tagCounts = new HashMap<>();
 
         try {
             String url = buildUrl();
@@ -50,18 +54,25 @@ public class StackExchangeClient implements StackExchangeFeeder {
             JsonArray items = jsonObject.getAsJsonArray("items");
 
             for (JsonElement element : items) {
-                JsonObject tag = element.getAsJsonObject();
+                JsonObject question = element.getAsJsonObject();
+                JsonArray tags = question.getAsJsonArray("tags");
 
-                String name = tag.get("name").getAsString();
-                int count = tag.get("count").getAsInt();
-
-                trends.add(new StackExchangeTrend(name, count, Instant.now()));
+                for (JsonElement tagElement : tags) {
+                    String tagName = tagElement.getAsString();
+                    tagCounts.put(tagName, tagCounts.getOrDefault(tagName, 0) + 1);
+                }
+            }
+            for (Map.Entry<String, Integer> entry : tagCounts.entrySet()) {
+                trends.add(new StackExchangeTrend(entry.getKey(), entry.getValue(), Instant.now()));
             }
         } catch (IOException e) {
-            logger.error("Error al obtener datos de StackExchange", e);        }
+            logger.error("Error al obtener datos de StackExchange", e);
+        }
         return trends;
     }
+
     private String buildUrl() {
-        return String.format("%s/tags?order=desc&sort=activity&site=stackoverflow&pagesize=30", baseUrl);
+        long sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS).getEpochSecond();
+        return baseUrl + "/questions?fromdate=" + sevenDaysAgo + "&order=desc&sort=activity&site=stackoverflow&pagesize=100";
     }
 }

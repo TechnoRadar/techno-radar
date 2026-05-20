@@ -49,18 +49,16 @@ public class TechnologyNormalizer {
     }
 
     public static String normalize(String tech) {
-        if (tech == null || tech.isBlank()) return "unknown";
+        if (tech == null) return "unknown";
+        String clean = tech.trim().toLowerCase();
 
-        String cleanTech = tech.toLowerCase().trim();
-
-        if (ALIASES.containsKey(cleanTech)) {
-            return ALIASES.get(cleanTech);
+        if (ALIASES.containsKey(clean)) {
+            clean = ALIASES.get(clean);
         }
 
-        if (ALLOWED_TECHS.contains(cleanTech)) {
-            return cleanTech;
-        }
-
-        return "unknown";
+        return clean;
+    }
+    public static boolean isMonitored(String normalizedTech) {
+        return ALLOWED_TECHS.contains(normalizedTech);
     }
 }

@@ -1,76 +1,74 @@
 package es.ulpgc.dacd.business.subscriber;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import es.ulpgc.dacd.business.datamart.SQLiteDatamart;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
 
-public class BusinessSubscriber implements MessageListener {
-    private final SQLiteDatamart datamart;
+public class BusinessSubscriber {
+    private static final Logger logger = LoggerFactory.getLogger(BusinessSubscriber.class);
     private final String brokerUrl;
-    private final Gson gson;
+    private final String topicName;
+    private final SQLiteDatamart datamart;
 
-    public BusinessSubscriber(SQLiteDatamart datamart, String brokerUrl) {
-        this.datamart = datamart;
+    public BusinessSubscriber(String brokerUrl, String topicName, SQLiteDatamart datamart) {
         this.brokerUrl = brokerUrl;
-        this.gson = new Gson();
+        this.topicName = topicName;
+        this.datamart = datamart;
     }
 
-    public void start() throws JMSException {
-        ConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
-        Connection connection = factory.createConnection();
-        connection.setClientID("BusinessUnitClient");
-        connection.start();
-
-        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-        Topic githubTopic = session.createTopic("Github.Trends");
-        MessageConsumer githubConsumer = session.createDurableSubscriber(githubTopic, "BusinessUnit-Github");
-        githubConsumer.setMessageListener(this);
-
-        Topic seTopic = session.createTopic("StackExchange.Trends");
-        MessageConsumer seConsumer = session.createDurableSubscriber(seTopic, "BusinessUnit-StackExchange");
-        seConsumer.setMessageListener(this);
-
-        System.out.println("🔥 Business Subscriber conectado a ActiveMQ y escuchando en tiempo real...");
-    }
-
-    @Override
-    public void onMessage(Message message) {
+    public void start() {
         try {
-            if (message instanceof TextMessage textMessage) {
-                String json = textMessage.getText();
-                processEvent(json);
-            }
+            ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
+            Connection connection = connectionFactory.createConnection();
+            connection.setClientID("business-unit-subscriber");
+            connection.start();
+
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            Topic topic = session.createTopic(topicName);
+            MessageConsumer consumer = session.createConsumer(topic);
+
+            logger.info("Suscrito a ActiveMQ en el topic: {}", topicName);
+
+            consumer.setMessageListener(message -> {
+                try {
+                    if (message instanceof TextMessage) {
+                        String jsonEvent = ((TextMessage) message).getText();
+                        processEvent(jsonEvent);
+                    }
+                } catch (JMSException e) {
+                    logger.error("Error procesando mensaje JMS", e);
+                }
+            });
         } catch (JMSException e) {
-            System.err.println("Error procesando mensaje JMS: " + e.getMessage());
+            logger.error("Error conectando a ActiveMQ", e);
         }
     }
 
-    private void processEvent(String jsonLine) {
+    private void processEvent(String jsonEvent) {
         try {
-            JsonObject event = gson.fromJson(jsonLine, JsonObject.class);
-            if (!event.has("payload")) return;
+            JsonObject root = JsonParser.parseString(jsonEvent).getAsJsonObject();
+            String sourceSystem = root.get("ss").getAsString().toLowerCase();
+            JsonObject payload = root.getAsJsonObject("payload");
 
-            JsonObject payload = event.getAsJsonObject("payload");
+            if (sourceSystem.contains("github")) {
+                String name = payload.get("language").getAsString();
+                int stars = payload.get("stars").getAsInt();
 
-            if (payload.has("repositoryName")) {
-                String language = payload.has("language") && !payload.get("language").isJsonNull()
-                        ? payload.get("language").getAsString() : "unknown";
-                int stars = payload.has("stars") ? payload.get("stars").getAsInt() : 0;
-                datamart.updateGithubTrend(language, stars);
-                System.out.println("✅ [Tiempo Real] Actualizado GitHub: " + language + " (" + stars + " estrellas)");
+                datamart.updateTrend(name, stars, 0);
 
-            } else if (payload.has("tagName")) {
-                String tag = payload.get("tagName").getAsString();
-                int count = payload.has("count") ? payload.get("count").getAsInt() : 0;
-                datamart.updateStackExchangeTrend(tag, count);
-                System.out.println("✅ [Tiempo Real] Actualizado StackExchange: " + tag + " (" + count + " preguntas)");
+            } else if (sourceSystem.contains("stackexchange")) {
+                String name = payload.get("tagName").getAsString();
+                int count = payload.get("count").getAsInt();
+
+                datamart.updateTrend(name, 0, count);
             }
         } catch (Exception e) {
-            System.err.println("Error parseando JSON en tiempo real: " + e.getMessage());
+            logger.error("Error al parsear el evento JSON: {}", jsonEvent, e);
         }
     }
 }

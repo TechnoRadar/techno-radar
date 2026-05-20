@@ -1,80 +1,68 @@
 package es.ulpgc.dacd.business.reader;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import es.ulpgc.dacd.business.datamart.SQLiteDatamart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 public class EventStoreReader {
-    private final SQLiteDatamart datamart;
+    private static final Logger logger = LoggerFactory.getLogger(EventStoreReader.class);
     private final String eventStorePath;
-    private final Gson gson;
+    private final SQLiteDatamart datamart;
 
-    public EventStoreReader(SQLiteDatamart datamart, String eventStorePath) {
-        this.datamart = datamart;
+    public EventStoreReader(String eventStorePath, SQLiteDatamart datamart) {
         this.eventStorePath = eventStorePath;
-        this.gson = new Gson();
+        this.datamart = datamart;
     }
 
-    public void loadHistory() {
-        File rootDir = new File(eventStorePath);
-        if (!rootDir.exists() || !rootDir.isDirectory()) {
-            System.err.println("Atención: La ruta del EventStore no existe o está vacía: " + eventStorePath);
-            return;
-        }
-        System.out.println("Cargando historial desde: " + eventStorePath);
-        processDirectory(rootDir);
-        System.out.println("Historial cargado correctamente.");
-    }
+    public void processHistoricalEvents() {
+        logger.info("Iniciando carga histórica (Cold Start) desde: {}", eventStorePath);
 
-    private void processDirectory(File dir) {
-        File[] files = dir.listFiles();
-        if (files == null) return;
+        try (Stream<Path> paths = Files.walk(Paths.get(eventStorePath))) {
+            paths.filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".events"))
+                    .forEach(this::processFile);
 
-        for (File file : files) {
-            if (file.isDirectory()) {
-                processDirectory(file);
-            } else if (file.getName().endsWith(".events")) {
-                processFile(file);
-            }
+            logger.info("Carga histórica completada. El Datamart está actualizado.");
+        } catch (Exception e) {
+            logger.error("Error leyendo el event store: {}", e.getMessage());
         }
     }
 
-    private void processFile(File file) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                processEvent(line);
-            }
-        } catch (IOException e) {
-            System.err.println("Error leyendo el archivo " + file.getName() + ": " + e.getMessage());
+    private void processFile(Path filePath) {
+        try (Stream<String> lines = Files.lines(filePath)) {
+            lines.forEach(this::processEventLine);
+        } catch (Exception e) {
+            logger.error("Error procesando archivo: {}", filePath, e);
         }
     }
 
-    private void processEvent(String jsonLine) {
+    private void processEventLine(String jsonEvent) {
         try {
-            JsonObject event = gson.fromJson(jsonLine, JsonObject.class);
-            if (!event.has("payload")) return; // Si no hay datos útiles, ignoramos
+            JsonObject root = JsonParser.parseString(jsonEvent).getAsJsonObject();
+            String sourceSystem = root.get("ss").getAsString().toLowerCase();
+            JsonObject payload = root.getAsJsonObject("payload");
 
-            JsonObject payload = event.getAsJsonObject("payload");
+            if (sourceSystem.contains("github")) {
+                String name = payload.get("language").getAsString();
+                int stars = payload.get("stars").getAsInt();
 
-            if (payload.has("repositoryName")) {
-                String language = payload.has("language") && !payload.get("language").isJsonNull()
-                        ? payload.get("language").getAsString() : "unknown";
-                int stars = payload.has("stars") ? payload.get("stars").getAsInt() : 0;
-                datamart.updateGithubTrend(language, stars);
+                datamart.updateTrend(name, stars, 0);
 
-            } else if (payload.has("tagName")) {
-                String tag = payload.get("tagName").getAsString();
-                int count = payload.has("count") ? payload.get("count").getAsInt() : 0;
-                datamart.updateStackExchangeTrend(tag, count);
+            } else if (sourceSystem.contains("stackexchange")) {
+                String name = payload.get("tagName").getAsString();
+                int count = payload.get("count").getAsInt();
+
+                datamart.updateTrend(name, 0, count);
             }
         } catch (Exception e) {
-            System.err.println("Error parseando JSON: " + e.getMessage());
+            logger.error("Error al procesar línea del histórico: {}", jsonEvent, e);
         }
     }
 }

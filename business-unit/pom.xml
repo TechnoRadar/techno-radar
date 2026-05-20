@@ -65,5 +65,17 @@
             <version>RELEASE</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>es.ulpgc.dacd</groupId>
+            <artifactId>github-feeder</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>es.ulpgc.dacd</groupId>
+            <artifactId>stackexchange-feeder</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

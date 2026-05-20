@@ -11,20 +11,17 @@ public class Main {
         String eventStorePath = args.length > 1 ? args[1] : "./eventstore";
         String brokerUrl = args.length > 2 ? args[2] : "tcp://localhost:61616";
         int port = args.length > 3 ? Integer.parseInt(args[3]) : 8081;
+        String topicName = "techno.radar.trends";
 
         SQLiteDatamart datamart = new SQLiteDatamart(dbPath);
 
-        EventStoreReader reader = new EventStoreReader(datamart, eventStorePath);
-        reader.loadHistory();
+        EventStoreReader reader = new EventStoreReader(eventStorePath, datamart);
+        reader.processHistoricalEvents();
 
-        BusinessSubscriber subscriber = new BusinessSubscriber(datamart, brokerUrl);
-        try {
-            subscriber.start();
-        } catch (Exception e) {
-            System.err.println("Error conectando a ActiveMQ: " + e.getMessage());
-        }
+        BusinessApi api = new BusinessApi(datamart,port);
+        api.start(8081);
 
-        BusinessApi api = new BusinessApi(datamart, port);
-        api.start();
+        BusinessSubscriber subscriber = new BusinessSubscriber(brokerUrl, topicName, datamart);
+        subscriber.start();
     }
 }
