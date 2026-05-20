@@ -243,15 +243,15 @@ classDiagram
     class GitHubFeeder {
         -provider:GitHubProvider
         -store:RepositoryStore
-        +execute():void
+        +execute() : void
     }
     class GitHubProvider {
-        -apiKey: String
-        +getTrendingRepositories():List~Repository~
+        -apiKey:String
+        +getTrendingRepositories() : List~Repository~
     }
     class RepositoryStore {
         <<interface>>
-        +publish(event:Event):void
+        +publish(event:Event) : void
     }
     GitHubFeeder --> GitHubProvider
     GitHubFeeder --> RepositoryStore
@@ -264,15 +264,15 @@ classDiagram
     class StackExchangeFeeder {
         -provider:StackExchangeProvider
         -store:RepositoryStore
-        +execute():void
+        +execute() : void
     }
     class StackExchangeProvider {
         -apiKey:String
-        +getTrendingQuestions():List~Question~
+        +getTrendingQuestions() : List~Question~
     }
     class RepositoryStore {
         <<interface>>
-        +publish(event: Event):void
+        +publish(event: Event) : void
     }
     StackExchangeFeeder --> StackExchangeProvider
     StackExchangeFeeder --> RepositoryStore
@@ -285,12 +285,12 @@ classDiagram
     class EventStoreBuilder {
         -connection:ActiveMQConnection
         -eventStore:FileEventStore
-        +start():void
-        -processMessage(event: Event):void
+        +start() : void
+        -processMessage(event: Event) : void
     }
     class FileEventStore {
         -path: String
-        +save(event: Event):void
+        +save(event: Event) : void
     }
     class Event {
         -eventId:String
@@ -308,14 +308,14 @@ classDiagram
     class BusinessApi {
         -datamart: SQLiteDatamart
         -port:int
-        +start():void
+        +start() : void
     }
     class SQLiteDatamart {
         -connection: Connection
         +getAllTrends(): List~Map~
-        +calculateCombinedScore(stars, questions):double
-        +calculateTrend(technology):String
-        +calculateHealthIndex(stars, questions):double
+        +calculateCombinedScore(stars, questions) : double
+        +calculateTrend(technology) : String
+        +calculateHealthIndex(stars, questions) : double
     }
     BusinessApi --> SQLiteDatamart
 ```
