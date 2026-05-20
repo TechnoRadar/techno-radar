@@ -1,7 +1,4 @@
-Tienes razón, disculpa. Aquí está el README.md **COMPLETO** sin salidas de código:
-
-
-🚀 Techno Radar
+# 🚀 Techno Radar
 **Plataforma Avanzada de Análisis de Tendencias Tecnológicas**
 
 ![Java](https://img.shields.io/badge/Java-21-blue?style=flat-square)
@@ -74,56 +71,63 @@ La combinación de ambas fuentes permite correlacionar la popularidad con la act
 ### Diagrama de Flujo del Sistema
 
 ```mermaid
-graph LR
-    subgraph Producers["🌟 Productores"]
-        A1["GitHub Feeder"]:::producer
-        A2["Stack Exchange Feeder"]:::producer
+graph TB
+    subgraph Prod[" PRODUCTORES"]
+        direction LR
+        GH["GitHub Feeder"]:::feeder
+        SE["Stack Exchange Feeder"]:::feeder
     end
     
-    subgraph Broker["🔄 Broker (ActiveMQ)"]
-        B1["github.Stars"]:::topic
-        B2["stackoverflow.Questions"]:::topic
+    subgraph Broker[" BROKER ACTIVEMQ"]
+        direction LR
+        T1["github.Stars"]:::topic
+        T2["stackoverflow.Questions"]:::topic
     end
     
-    subgraph Subscriber["📥 Suscriptor"]
-        C1["Event Store Builder"]:::subscriber
+    subgraph Sub[" SUSCRIPTOR"]
+        direction TB
+        ESB["Event Store<br/>Builder"]:::subscriber
     end
     
-    subgraph Storage["💾 Almacenamiento"]
-        D1["Event Store"]:::storage
+    subgraph Store[" ALMACENAMIENTO"]
+        direction TB
+        ES["Event Store"]:::storage
     end
     
-    subgraph Processing["🧠 Procesamiento"]
-        E1["Business Unit"]:::processor
+    subgraph Proc[" PROCESAMIENTO"]
+        direction TB
+        BU["Business Unit"]:::processor
     end
     
-    subgraph DataStorage["📊 Datamart"]
-        F1["SQLite DB"]:::datamart
+    subgraph DM[" DATAMART"]
+        direction TB
+        DB["SQLite DB"]:::datamart
     end
     
-    subgraph Visualization["🖥️ Visualización"]
-        G1["REST API"]:::api
-        G2["Dashboard"]:::dashboard
+    subgraph Viz[" VISUALIZACIÓN"]
+        direction LR
+        API["REST API"]:::api
+        DASH["Dashboard"]:::dashboard
     end
     
-    A1 -->|Publica eventos| B1
-    A2 -->|Publica eventos| B2
-    B1 -->|Consume| C1
-    B2 -->|Consume| C1
-    C1 -->|Almacena| D1
-    D1 -->|Lee eventos| E1
-    E1 -->|Procesa y calcula| F1
-    F1 -->|Consulta| G1
-    G1 -->|Obtiene datos| G2
+    GH -->|publica| T1
+    SE -->|publica| T2
+    T1 -->|consume| ESB
+    T2 -->|consume| ESB
+    ESB -->|almacena| ES
+    ES -->|lee eventos| BU
+    BU -->|procesa| DB
+    DB -->|consulta| API
+    API -->|obtiene datos| DASH
     
-    classDef producer fill:#90EE90,stroke:#2d5a2d,stroke-width:2px,color:#000
-    classDef topic fill:#87CEEB,stroke:#1e3a5a,stroke-width:2px,color:#000
-    classDef subscriber fill:#FFB347,stroke:#5a3a1e,stroke-width:2px,color:#000
-    classDef storage fill:#FF6B6B,stroke:#8b0000,stroke-width:2px,color:#fff
-    classDef processor fill:#DA70D6,stroke:#4a1a5a,stroke-width:2px,color:#000
-    classDef datamart fill:#DAA520,stroke:#5a4a1e,stroke-width:2px,color:#000
-    classDef api fill:#20B2AA,stroke:#1a3a3a,stroke-width:2px,color:#fff
-    classDef dashboard fill:#FF8C00,stroke:#5a3a1e,stroke-width:2px,color:#fff
+    classDef feeder fill:#90EE90,stroke:#2d5a2d,stroke-width:3px,color:#000,font-size:14px,font-weight:bold
+    classDef topic fill:#87CEEB,stroke:#1e3a5a,stroke-width:2px,color:#000,font-size:12px
+    classDef subscriber fill:#FFB347,stroke:#5a3a1e,stroke-width:3px,color:#000,font-size:14px,font-weight:bold
+    classDef storage fill:#FF6B6B,stroke:#8b0000,stroke-width:3px,color:#fff,font-size:14px,font-weight:bold
+    classDef processor fill:#DA70D6,stroke:#4a1a5a,stroke-width:3px,color:#000,font-size:14px,font-weight:bold
+    classDef datamart fill:#DAA520,stroke:#5a4a1e,stroke-width:3px,color:#000,font-size:14px,font-weight:bold
+    classDef api fill:#20B2AA,stroke:#1a3a3a,stroke-width:3px,color:#fff,font-size:14px,font-weight:bold
+    classDef dashboard fill:#FF8C00,stroke:#5a3a1e,stroke-width:3px,color:#fff,font-size:14px,font-weight:bold
 ```
 
 ### 🧩 Principios de Diseño Aplicados
@@ -237,17 +241,17 @@ Java,32450,298471,76.4,STABLE,82.5,2026-05-19T10:30:00
 ```mermaid
 classDiagram
     class GitHubFeeder {
-        -provider: GitHubProvider
-        -store: RepositoryStore
-        +execute(): void
+        -provider:GitHubProvider
+        -store:RepositoryStore
+        +execute() : void
     }
     class GitHubProvider {
-        -apiKey: String
-        +getTrendingRepositories(): List~Repository~
+        -apiKey:String
+        +getTrendingRepositories() : List~Repository~
     }
     class RepositoryStore {
         <<interface>>
-        +publish(event: Event): void
+        +publish(event:Event) : void
     }
     GitHubFeeder --> GitHubProvider
     GitHubFeeder --> RepositoryStore
@@ -258,17 +262,17 @@ classDiagram
 ```mermaid
 classDiagram
     class StackExchangeFeeder {
-        -provider: StackExchangeProvider
-        -store: RepositoryStore
-        +execute(): void
+        -provider:StackExchangeProvider
+        -store:RepositoryStore
+        +execute() : void
     }
     class StackExchangeProvider {
-        -apiKey: String
-        +getTrendingQuestions(): List~Question~
+        -apiKey:String
+        +getTrendingQuestions() : List~Question~
     }
     class RepositoryStore {
         <<interface>>
-        +publish(event: Event): void
+        +publish(event: Event) : void
     }
     StackExchangeFeeder --> StackExchangeProvider
     StackExchangeFeeder --> RepositoryStore
@@ -279,19 +283,19 @@ classDiagram
 ```mermaid
 classDiagram
     class EventStoreBuilder {
-        -connection: ActiveMQConnection
-        -eventStore: FileEventStore
-        +start(): void
-        -processMessage(event: Event): void
+        -connection:ActiveMQConnection
+        -eventStore:FileEventStore
+        +start() : void
+        -processMessage(event: Event) : void
     }
     class FileEventStore {
         -path: String
-        +save(event: Event): void
+        +save(event: Event) : void
     }
     class Event {
-        -eventId: String
-        -type: String
-        -data: Map
+        -eventId:String
+        -type:String
+        -data:Map
     }
     EventStoreBuilder --> FileEventStore
     FileEventStore --> Event
@@ -303,15 +307,15 @@ classDiagram
 classDiagram
     class BusinessApi {
         -datamart: SQLiteDatamart
-        -port: int
-        +start(): void
+        -port:int
+        +start() : void
     }
     class SQLiteDatamart {
         -connection: Connection
         +getAllTrends(): List~Map~
-        +calculateCombinedScore(stars, questions): double
-        +calculateTrend(technology): String
-        +calculateHealthIndex(stars, questions): double
+        +calculateCombinedScore(stars, questions) : double
+        +calculateTrend(technology) : String
+        +calculateHealthIndex(stars, questions) : double
     }
     BusinessApi --> SQLiteDatamart
 ```
