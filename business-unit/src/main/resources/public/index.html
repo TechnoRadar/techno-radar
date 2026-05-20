@@ -245,21 +245,37 @@
 
     function updateMetricsTable(data) {
         const tbody = document.getElementById('metricsTableBody');
-        tbody.innerHTML = '';
+        tbody.innerHTML = ''; // Limpiar tabla
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay datos disponibles</td></tr>';
+            return;
+        }
+
         data.forEach((tech, index) => {
-            const trendClass = tech.trend === 'UP' ? 'trend-up' : tech.trend === 'DOWN' ? 'trend-down' : 'trend-stable';
-            const trendSymbol = tech.trend === 'UP' ? '📈' : tech.trend === 'DOWN' ? '📉' : '➡️';
+            const stars = tech.githubStars ?? 0;
+            const questions = tech.stackExchangeQuestions ?? 0;
+            const score = (tech.combinedScore ?? 0).toFixed(1);
+            const health = (tech.healthIndex ?? 0).toFixed(1);
+
+            const trendSymbol = tech.trend === 'UP' ? '📈' : (tech.trend === 'DOWN' ? '📉' : '➡️');
+
             const row = `
-                <tr>
-                    <td><strong>${index + 1}</strong></td>
-                    <td><strong>${tech.technology.toUpperCase()}</strong></td>
-                    <td>${tech.githubStars}</td>
-                    <td>${tech.stackExchangeQuestions}</td>
-                    <td><div class="score-bar" style="width: ${tech.combinedScore * 0.8}px;"></div>${tech.combinedScore.toFixed(1)}</td>
-                    <td class="${trendClass}">${trendSymbol} ${tech.trend}</td>
-                    <td>${tech.healthIndex.toFixed(1)}</td>
-                </tr>
-            `;
+            <tr>
+                <td><strong>${index + 1}</strong></td>
+                <td><strong>${(tech.technology || "Unknown").toUpperCase()}</strong></td>
+                <td>${stars}</td>
+                <td>${questions}</td>
+                <td>
+                    <div class="score-bar-container" style="width: 100px; background: #eee; height: 10px;">
+                        <div class="score-bar" style="width: ${Math.min(score * 10, 100)}%; background: #667eea; height: 100%;"></div>
+                    </div>
+                    ${score}
+                </td>
+                <td>${trendSymbol} ${tech.trend || '-'}</td>
+                <td>${health}</td>
+            </tr>
+        `;
             tbody.innerHTML += row;
         });
     }

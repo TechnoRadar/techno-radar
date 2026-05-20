@@ -1,7 +1,7 @@
 package es.ulpgc.dacd.control;
 
 import es.ulpgc.dacd.model.StackExchangeTrend;
-import es.ulpgc.dacd.persistence.JmsEventStore;
+import es.ulpgc.dacd.persistence.JmsEventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +13,10 @@ public class Controller {
     private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
     private final StackExchangeFeeder feeder;
-    private final JmsEventStore<StackExchangeTrend> store;
+    private final JmsEventPublisher<StackExchangeTrend> store;
     private static final long POLLING_PERIOD_MS = 1800000;
 
-    public Controller(StackExchangeFeeder feeder, JmsEventStore<StackExchangeTrend> store) {
+    public Controller(StackExchangeFeeder feeder, JmsEventPublisher<StackExchangeTrend> store) {
         this.feeder = feeder;
         this.store = store;
     }

@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import javax.jms.*;
 import java.time.Instant;
 
-public class JmsEventStore<T> implements AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(JmsEventStore.class);
+public class JmsEventPublisher<T> implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(JmsEventPublisher.class);
 
     private final String topicName;
     private final String sourceSystem;
@@ -21,7 +21,7 @@ public class JmsEventStore<T> implements AutoCloseable {
     private MessageProducer producer;
     private final ObjectMapper objectMapper;
 
-    public JmsEventStore(String brokerUrl, String topicName, String sourceSystem) {
+    public JmsEventPublisher (String brokerUrl, String topicName, String sourceSystem) {
         this.topicName = topicName;
         this.sourceSystem = sourceSystem;
 

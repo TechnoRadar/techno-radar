@@ -3,7 +3,7 @@ package es.ulpgc.dacd;
 import es.ulpgc.dacd.control.Controller;
 import es.ulpgc.dacd.control.StackExchangeClient;
 import es.ulpgc.dacd.model.StackExchangeTrend;
-import es.ulpgc.dacd.persistence.JmsEventStore;
+import es.ulpgc.dacd.persistence.JmsEventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,7 @@ public class Main {
 
         StackExchangeClient feeder = new StackExchangeClient(apiUrl);
 
-        JmsEventStore<StackExchangeTrend> store = new JmsEventStore<>(brokerUrl, topicName, sourceSystem);
+        JmsEventPublisher<StackExchangeTrend> store = new JmsEventPublisher<>(brokerUrl, topicName, sourceSystem);
 
         Controller controller = new Controller(feeder, store);
         controller.start();

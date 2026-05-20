@@ -13,10 +13,8 @@ import java.util.Map;
 public class SQLiteDatamart {
     private static final Logger logger = LoggerFactory.getLogger(SQLiteDatamart.class);
     private final Connection connection;
-    private final String dbPath;
 
     public SQLiteDatamart(String dbPath) {
-        this.dbPath = dbPath;
         try {
             this.connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
             initDatabase();
@@ -178,7 +176,13 @@ public class SQLiteDatamart {
         return history;
     }
 
-    public void close() throws SQLException {
-        if (connection != null) connection.close();
+    public void closeSafe() {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            logger.error("Error cerrando la conexion a la base de datos", e);
+        }
     }
 }

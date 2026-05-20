@@ -4,7 +4,7 @@ import es.ulpgc.dacd.control.Controller;
 import es.ulpgc.dacd.control.GitHubClient;
 import es.ulpgc.dacd.control.GitHubFeeder;
 import es.ulpgc.dacd.model.GitHubTrend;
-import es.ulpgc.dacd.persistence.JmsEventStore;
+import es.ulpgc.dacd.persistence.JmsEventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,7 @@ public class Main {
 
         GitHubFeeder feeder = new GitHubClient(baseUrl);
 
-        JmsEventStore<GitHubTrend> store = new JmsEventStore<>(brokerUrl, topicName, sourceSystem);
+        JmsEventPublisher<GitHubTrend> store = new JmsEventPublisher<>(brokerUrl, topicName, sourceSystem);
 
         new Controller(feeder, store).start();
     }

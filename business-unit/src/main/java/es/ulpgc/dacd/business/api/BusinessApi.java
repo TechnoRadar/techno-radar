@@ -1,59 +1,30 @@
 package es.ulpgc.dacd.business.api;
 
-import com.google.gson.Gson;
 import es.ulpgc.dacd.business.datamart.SQLiteDatamart;
 import io.javalin.Javalin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
 
 public class BusinessApi {
-    private static final Logger logger = LoggerFactory.getLogger(BusinessApi.class);
-
     private final SQLiteDatamart datamart;
-    private final int port;
+    private Javalin app;
 
-    public BusinessApi(SQLiteDatamart datamart, int port) {
+    public BusinessApi(SQLiteDatamart datamart) {
         this.datamart = datamart;
-        this.port = port;
     }
 
-    public void start(int i) {
-        Javalin app = Javalin.create(config -> {
+    public void start(int port) {
+        app = Javalin.create(config -> {
             config.staticFiles.add("/public");
+            config.plugins.enableCors(cors -> cors.add(it -> it.anyHost()));
         }).start(port);
 
-        app.get("/api/trends", ctx -> {
-            logger.info("Solicitud GET recibida en /api/trends");
-            List<Map<String, Object>> trends = datamart.getTrends();
+        app.get("/api/trends", ctx -> ctx.json(datamart.getTrends()));
+        app.get("/api/trends/{tech}/history", ctx -> ctx.json(datamart.getTrendHistory(ctx.pathParam("tech"))));
+        app.get("/api/trends/emerging", ctx -> ctx.json(datamart.getEmergingTrends()));
+    }
 
-            if (trends.isEmpty()) {
-                logger.warn("El Datamart está vacío.");
-                ctx.status(404).result("No hay tendencias disponibles.");
-            } else {
-                ctx.json(trends);
-            }
-        });
-
-        app.get("/api/trends/emerging", ctx -> {
-            ctx.json(datamart.getEmergingTrends());
-        });
-
-        app.get("/api/trends/{technology}/history", ctx -> {
-            String technology = ctx.pathParam("technology");
-            logger.info("Solicitud de historial para: {}", technology);
-            List<Map<String, Object>> history = datamart.getTrendHistory(technology);
-
-            if (history.isEmpty()) {
-                ctx.status(404).result("No hay historial para: " + technology);
-            } else {
-                ctx.json(history);
-            }
-
-        });
-
-        logger.info("🚀 API y Dashboard iniciados. Entra en: http://localhost:{}", port);
+    public void stop() {
+        if (app != null) {
+            app.stop();
+        }
     }
 }

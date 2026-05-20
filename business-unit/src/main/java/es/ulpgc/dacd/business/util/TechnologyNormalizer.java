@@ -1,8 +1,8 @@
 package es.ulpgc.dacd.business.util;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class TechnologyNormalizer {

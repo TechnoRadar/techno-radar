@@ -1,8 +1,6 @@
 package es.ulpgc.dacd.business.subscriber;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import es.ulpgc.dacd.business.datamart.SQLiteDatamart;
+import es.ulpgc.dacd.business.util.EventProcessor;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,18 +11,19 @@ public class BusinessSubscriber {
     private static final Logger logger = LoggerFactory.getLogger(BusinessSubscriber.class);
     private final String brokerUrl;
     private final String topicName;
-    private final SQLiteDatamart datamart;
+    private final EventProcessor eventProcessor;
+    private Connection connection;
 
-    public BusinessSubscriber(String brokerUrl, String topicName, SQLiteDatamart datamart) {
+    public BusinessSubscriber(String brokerUrl, String topicName, EventProcessor eventProcessor) {
         this.brokerUrl = brokerUrl;
         this.topicName = topicName;
-        this.datamart = datamart;
+        this.eventProcessor = eventProcessor;
     }
 
     public void start() {
         try {
             ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
-            Connection connection = connectionFactory.createConnection();
+            connection = connectionFactory.createConnection();
             connection.setClientID("business-unit-subscriber");
             connection.start();
 
@@ -37,8 +36,7 @@ public class BusinessSubscriber {
             consumer.setMessageListener(message -> {
                 try {
                     if (message instanceof TextMessage) {
-                        String jsonEvent = ((TextMessage) message).getText();
-                        processEvent(jsonEvent);
+                        eventProcessor.process(((TextMessage) message).getText());
                     }
                 } catch (JMSException e) {
                     logger.error("Error procesando mensaje JMS", e);
@@ -49,26 +47,13 @@ public class BusinessSubscriber {
         }
     }
 
-    private void processEvent(String jsonEvent) {
+    public void stop() {
         try {
-            JsonObject root = JsonParser.parseString(jsonEvent).getAsJsonObject();
-            String sourceSystem = root.get("ss").getAsString().toLowerCase();
-            JsonObject payload = root.getAsJsonObject("payload");
-
-            if (sourceSystem.contains("github")) {
-                String name = payload.get("language").getAsString();
-                int stars = payload.get("stars").getAsInt();
-
-                datamart.updateTrend(name, stars, 0);
-
-            } else if (sourceSystem.contains("stackexchange")) {
-                String name = payload.get("tagName").getAsString();
-                int count = payload.get("count").getAsInt();
-
-                datamart.updateTrend(name, 0, count);
+            if (connection != null) {
+                connection.close();
             }
-        } catch (Exception e) {
-            logger.error("Error al parsear el evento JSON: {}", jsonEvent, e);
+        } catch (JMSException e) {
+            logger.error("Error cerrando conexion de ActiveMQ", e);
         }
     }
 }

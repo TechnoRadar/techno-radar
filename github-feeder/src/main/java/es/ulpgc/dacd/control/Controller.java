@@ -1,7 +1,7 @@
 package es.ulpgc.dacd.control;
 
 import es.ulpgc.dacd.model.GitHubTrend;
-import es.ulpgc.dacd.persistence.JmsEventStore;
+import es.ulpgc.dacd.persistence.JmsEventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +13,10 @@ public class Controller {
     private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
     private final GitHubFeeder feeder;
-    private final JmsEventStore<GitHubTrend> store;
+    private final JmsEventPublisher<GitHubTrend> store;
     private static final long POLLING_PERIOD_MS = 1800000;
 
-    public Controller(GitHubFeeder feeder, JmsEventStore<GitHubTrend> store) {
+    public Controller(GitHubFeeder feeder, JmsEventPublisher<GitHubTrend> store) {
         this.feeder = feeder;
         this.store = store;
     }
