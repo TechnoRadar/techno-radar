@@ -72,33 +72,33 @@ La combinación de ambas fuentes permite correlacionar la popularidad con la act
 
 ```mermaid
 graph LR
-    subgraph Producers["🌟 Productores"]
+    subgraph Producers["Productores"]
         A1["GitHub Feeder"]:::producer
         A2["Stack Exchange Feeder"]:::producer
     end
     
-    subgraph Broker["🔄 Broker (ActiveMQ)"]
+    subgraph Broker["Broker (ActiveMQ)"]
         B1["github.Stars"]:::topic
         B2["stackoverflow.Questions"]:::topic
     end
     
-    subgraph Subscriber["📥 Suscriptor"]
+    subgraph Subscriber["Suscriptor"]
         C1["Event Store Builder"]:::subscriber
     end
     
-    subgraph Storage["💾 Almacenamiento"]
+    subgraph Storage["Almacenamiento"]
         D1["Event Store"]:::storage
     end
     
-    subgraph Processing["🧠 Procesamiento"]
+    subgraph Processing["Procesamiento"]
         E1["Business Unit"]:::processor
     end
     
-    subgraph DataStorage["📊 Datamart"]
+    subgraph DataStorage["Datamart"]
         F1["SQLite DB"]:::datamart
     end
     
-    subgraph Visualization["🖥️ Visualización"]
+    subgraph Visualization["Visualización"]
         G1["REST API"]:::api
         G2["Dashboard"]:::dashboard
     end
