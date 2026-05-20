@@ -241,17 +241,17 @@ Java,32450,298471,76.4,STABLE,82.5,2026-05-19T10:30:00
 ```mermaid
 classDiagram
     class GitHubFeeder {
-        -provider: GitHubProvider
-        -store: RepositoryStore
-        +execute(): void
+        -provider:GitHubProvider
+        -store:RepositoryStore
+        +execute():void
     }
     class GitHubProvider {
         -apiKey: String
-        +getTrendingRepositories(): List~Repository~
+        +getTrendingRepositories():List~Repository~
     }
     class RepositoryStore {
         <<interface>>
-        +publish(event: Event): void
+        +publish(event:Event):void
     }
     GitHubFeeder --> GitHubProvider
     GitHubFeeder --> RepositoryStore
@@ -262,17 +262,17 @@ classDiagram
 ```mermaid
 classDiagram
     class StackExchangeFeeder {
-        -provider: StackExchangeProvider
-        -store: RepositoryStore
-        +execute(): void
+        -provider:StackExchangeProvider
+        -store:RepositoryStore
+        +execute():void
     }
     class StackExchangeProvider {
-        -apiKey: String
-        +getTrendingQuestions(): List~Question~
+        -apiKey:String
+        +getTrendingQuestions():List~Question~
     }
     class RepositoryStore {
         <<interface>>
-        +publish(event: Event): void
+        +publish(event: Event):void
     }
     StackExchangeFeeder --> StackExchangeProvider
     StackExchangeFeeder --> RepositoryStore
@@ -283,19 +283,19 @@ classDiagram
 ```mermaid
 classDiagram
     class EventStoreBuilder {
-        -connection: ActiveMQConnection
-        -eventStore: FileEventStore
-        +start(): void
-        -processMessage(event: Event): void
+        -connection:ActiveMQConnection
+        -eventStore:FileEventStore
+        +start():void
+        -processMessage(event: Event):void
     }
     class FileEventStore {
         -path: String
-        +save(event: Event): void
+        +save(event: Event):void
     }
     class Event {
-        -eventId: String
-        -type: String
-        -data: Map
+        -eventId:String
+        -type:String
+        -data:Map
     }
     EventStoreBuilder --> FileEventStore
     FileEventStore --> Event
@@ -307,15 +307,15 @@ classDiagram
 classDiagram
     class BusinessApi {
         -datamart: SQLiteDatamart
-        -port: int
-        +start(): void
+        -port:int
+        +start():void
     }
     class SQLiteDatamart {
         -connection: Connection
         +getAllTrends(): List~Map~
-        +calculateCombinedScore(stars, questions): double
-        +calculateTrend(technology): String
-        +calculateHealthIndex(stars, questions): double
+        +calculateCombinedScore(stars, questions):double
+        +calculateTrend(technology):String
+        +calculateHealthIndex(stars, questions):double
     }
     BusinessApi --> SQLiteDatamart
 ```
